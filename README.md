@@ -29,7 +29,7 @@ python
 ```
 d. Clone the yolov5-obb-tracking repository.
 ```
-git clone https://github.com/OpNUB-Cole/yolov5-obb-tracking.git
+git clone https://github.com/opnuub/yolov5-obb-tracking.git
 cd yolov5-obb-tracking
 ```
 e. Install yolov5-obb-tracking.
