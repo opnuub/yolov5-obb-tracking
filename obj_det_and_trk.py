@@ -15,6 +15,7 @@ Usage:
 import argparse
 import os
 import sys
+import csv
 from pathlib import Path
 import numpy as np
 
@@ -59,6 +60,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         max_det=1000,  # maximum detections per image
         device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         view_img=False,  # show results
+        record=False,  # record trajectory
         save_txt=False,  # save results to *.txt
         save_conf=False,  # save confidences in --save-txt labels
         save_crop=False,  # save cropped prediction boxes
@@ -103,6 +105,16 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     model = DetectMultiBackend(weights, device=device, dnn=dnn)
     stride, names, pt, jit, onnx, engine = model.stride, model.names, model.pt, model.jit, model.onnx, model.engine
     imgsz = check_img_size(imgsz, s=stride)  # check image size
+
+    # Store
+    if record:
+        x, files, writers = 0, [], []
+        header = ['Frame', 'Object', 'Confidence', 'x_c', 'y_c']
+        for frame in range(len(names)):
+            files.append(open(f'{save_dir}/{names[frame]}.csv', 'w'))
+            writer = csv.writer(files[frame])
+            writer.writerow(header)
+            writers.append(writer)
 
     # Half
     half &= (pt or jit or engine) and device.type != 'cpu'  # half precision only supported by PyTorch on CUDA
@@ -212,6 +224,9 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     dets_to_sort = np.vstack((dets_to_sort, 
                                               np.array([x1, y1, x2, y2, 
                                                         conf, detclass])))
+                    if record:
+                        writer, data = writers[detclass], [x, names[detclass], conf, (x1+x2)/2, (y1+y2)/2]
+                        writer.writerow(data)
 
                 # Run SORT
                 tracked_dets = sort_tracker.update(dets_to_sort)
@@ -254,6 +269,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                             save_path += '.mp4'
                         vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                     vid_writer[i].write(im0)
+        if record: 
+            x+=1
 
     # Print results
     t = tuple(x / seen * 1E3 for x in dt)  # speeds per image
@@ -263,6 +280,9 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
+    if record:
+        for file in files:
+            file.close()
 
 
 def parse_opt():
@@ -275,6 +295,7 @@ def parse_opt():
     parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
     parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='show results')
+    parser.add_argument('--record', action='store_true', help='store trajectory')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
     parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
     parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
