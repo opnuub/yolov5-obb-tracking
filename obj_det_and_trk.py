@@ -109,7 +109,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     # Store
     if record:
         x, files, writers = 0, [], []
-        header = ['Frame', 'Object', 'Confidence', 'x_c', 'y_c']
+        header = ['Frame', 'Confidence', 'x_c', 'y_c']
         for frame in range(len(names)):
             files.append(open(f'{save_dir}/{names[frame]}.csv', 'w'))
             writer = csv.writer(files[frame])
@@ -225,7 +225,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                                               np.array([x1, y1, x2, y2, 
                                                         conf, detclass])))
                     if record:
-                        writer, data = writers[detclass], [x, names[detclass], conf, (x1+x2)/2, (y1+y2)/2]
+                        writer, data = writers[detclass], [x, conf, float((x1+x2)/2), float((y1+y2)/2)]
                         writer.writerow(data)
 
                 # Run SORT
