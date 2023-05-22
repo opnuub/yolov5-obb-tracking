@@ -49,7 +49,6 @@ def draw_boxes(img, bbox, identities=None, names=None):
         x1, y1, x2, y2 = [int(i) for i in box]
         data = (int((box[0]+box[2])/2),(int((box[1]+box[3])/2)))
         cv2.circle(img, data, 3, (255,191,0),-1)
-    return img
 
 @torch.no_grad()
 def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
@@ -236,17 +235,21 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     bbox_xyxy = tracked_dets[:, :4]
                     identities = tracked_dets[:, 5]
 
-            # Print time (inference-only)
-            LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
+                # Print time (inference-only)
+                LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
-            # Stream results
-            im0 = annotator.result()
-            img = draw_boxes(im0, bbox_xyxy, identities, names)
-            for track in tracks:
-                [cv2.line(im0, (int(track.centroidarr[i][0]),int(track.centroidarr[i][1])), 
-                (int(track.centroidarr[i+1][0]),int(track.centroidarr[i+1][1])),
-                (124, 252, 0), thickness=3) for i,_ in  enumerate(track.centroidarr) 
-                if i < len(track.centroidarr)-1 ] 
+                # Stream results
+                im0 = annotator.result()
+                
+                draw_boxes(im0, bbox_xyxy, identities, names)
+                #maxx = 5
+                for track in tracks:
+                    #diff = len(track.centroidarr) - maxx
+                    #if diff > 0:
+                    #    [track.centroidarr.pop(0) for _ in range(diff)]
+                    for idxx, _ in enumerate(track.centroidarr):
+                        if idxx < len(track.centroidarr) - 1:
+                            cv2.line(im0, (int(track.centroidarr[idxx][0]),int(track.centroidarr[idxx][1])), (int(track.centroidarr[idxx+1][0]),int(track.centroidarr[idxx+1][1])), (124, 252, 0), thickness=3)
             if view_img:
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
@@ -287,8 +290,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'weights/best.pt', help='model path(s)')
-    parser.add_argument('--source', type=str, default="vid.m4v", help='file/dir/URL/glob, 0 for webcam')
+    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'best.pt', help='model path(s)')
+    parser.add_argument('--source', type=str, default="12.m4v", help='file/dir/URL/glob, 0 for webcam')
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[720], help='inference size h,w')
     parser.add_argument('--conf-thres', type=float, default=0.4, help='confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.2, help='NMS IoU threshold')
