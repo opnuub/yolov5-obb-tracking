@@ -39,3 +39,7 @@ pip install -r requirements.txt
 cd utils/nms_rotated
 python setup.py develop  #or "pip install -v -e ."
 ```
+
+
+## Acknowledgements
+This repository is based on [@hukaixuan19970627](https://github.com/hukaixuan19970627/yolov5_obb)https://github.com/hukaixuan19970627/yolov5_obb.
