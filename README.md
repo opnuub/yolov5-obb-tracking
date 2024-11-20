@@ -43,3 +43,5 @@ python setup.py develop  #or "pip install -v -e ."
 
 ## Acknowledgements
 This repository is based on https://github.com/hukaixuan19970627/yolov5_obb.
+
+This project includes modifications to the original codebase by [hukaixuan19970627](https://github.com/hukaixuan19970627) under [GPL-3.0 license].
